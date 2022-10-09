@@ -34,12 +34,28 @@ const server = http.createServer((req, res) => {
     // res.end();
 
     // copy files good way
-    const readStream = fs.createReadStream('sample.txt');
-    const writeStream = fs.createWriteStream('output.txt');
-    readStream.on('data', (chunk) => {
-        console.log('Chunk : ', chunk.toString());
-        writeStream.write(chunk);
+    // const readStream = fs.createReadStream('sample.txt');
+    // const writeStream = fs.createWriteStream('output.txt');
+    // readStream.on('data', (chunk) => {
+    //     console.log('Chunk : ', chunk.toString());
+    //     writeStream.write(chunk);
+    // })
+
+    // string processing
+    const sampleFileStream = fs.createReadStream('sample.txt');
+    const outputWritableStream = fs.createWriteStream('output.txt');
+
+    sampleFileStream.on('data', (chunk) => {
+        console.log('data received : ', chunk.toString());
+
+        // process
+        const upperCaseString = chunk.toString().toUpperCase();
+        const finalString = upperCaseString.replaceAll(/ipsum/gi, '***');
+
+        // writable stream write
+        outputWritableStream.write(finalString);
     })
+
     res.end();
 
     console.log('request incoming..', req.url); 
