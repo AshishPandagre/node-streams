@@ -1,12 +1,13 @@
 const http = require('http');
 const fs = require('fs');
+const { Transform } = require('stream');
 
 const server = http.createServer((req, res) => {
 
     // req is a readableStream
     // res is a writebleStream
 
-    if(req.url  !== '/') {
+    if (req.url !== '/') {
         return res.end();
     }
 
@@ -45,20 +46,33 @@ const server = http.createServer((req, res) => {
     const sampleFileStream = fs.createReadStream('sample.txt');
     const outputWritableStream = fs.createWriteStream('output.txt');
 
-    sampleFileStream.on('data', (chunk) => {
-        console.log('data received : ', chunk.toString());
-
-        // process
-        const upperCaseString = chunk.toString().toUpperCase();
-        const finalString = upperCaseString.replaceAll(/ipsum/gi, '***');
-
-        // writable stream write
-        outputWritableStream.write(finalString);
+    const replaceWordProcessing = new Transform({
+        transform(chunk, encoding, callback) {
+            // process
+            const upperCaseString = chunk.toString().toUpperCase();
+            const finalString = upperCaseString.replaceAll(/ipsum/gi, '***');
+            console.log(finalString);
+            callback(null, finalString);
+        }
     })
+
+    // sampleFileStream.on('data', (chunk) => {
+    //     console.log('data received : ', chunk.toString());
+
+    //     // process
+    //     const upperCaseString = chunk.toString().toUpperCase();
+    //     const finalString = upperCaseString.replaceAll(/ipsum/gi, '***');
+
+    //     // writable stream write
+    //     outputWritableStream.write(finalString);
+    // })
+
+    sampleFileStream.pipe(replaceWordProcessing).pipe(outputWritableStream);
+
 
     res.end();
 
-    console.log('request incoming..', req.url); 
+    console.log('request incoming..', req.url);
 })
 
 PORT = 5700;
